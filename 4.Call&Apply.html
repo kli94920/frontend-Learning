@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Call and Apply</title>
+</head>
+<body>
+  <script>
+    /* 
+      原文链接：https://blog.csdn.net/qq_21397815/article/details/90482341
+
+
+      首先先说明它们共同的作用：call和apply 都是用来修改函数中this的指向问题；
+
+      其次就是它们不同的传参方式：注意上一句话中说他们的作用时有两个关键词 ‘函数’和‘this’，想要修改this 的指向，那么必然有一个this修改后的指向，
+      而函数必然后关系到传参问题：call方法可以传给该函数的参数分别作为自己的多个参数，而apply方法必须将传给该函数的参数合并成一个数组作为自己的一个参数
+      
+      当我们通过 call 和 apply 来修改this的指向时
+        不传任何参数或者 传 null，则默认为将this指向修改为 windows
+        有参数时，this 指向第一个参数
+
+        var test111 = [ 8, 3, 10, 5];
+        var max = Math.max.apply(null,test111);
+
+      
+
+     */
+  </script>
+</body>
+</html>
