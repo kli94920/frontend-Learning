@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>sort</title>
+</head>
+<body>
+  <script>
+    /* 
+      冒泡排序
+      原理：相邻元素两两对比，根据大小交换位置
+    */
+    function bubbleSort(arr) {
+      var len = arr.length;
+      for (var i=0; i<len; i++) {
+        console.log('bubble i:', i, arr);
+        for (var j=0; j<len - 1 - i; j++) {
+          console.log('bubble j:', j, arr);
+          console.log('bubble arr[j]:', arr[j]);
+          console.log('bubble arr[j+1]:', arr[j+1]);
+          if(arr[j] > arr[j+1]) {
+            var temp = arr[j+1];
+            arr[j+1] = arr[j];
+            arr[j] = temp;
+          }
+        }
+      }
+      return arr;
+    }
+    bubbleSort([4,3,1,5,2]);
+
+
+    /* 
+      快速排序
+      取基点值，并定义两个空数组（leftArr，rightArr），遍历数组，比基点值小的放在 leftArr，比基点值大的放在 rightArr
+      对两个数组递归执行以上操作，只到数组长度 <= 1
+    */
+
+    function quickSort(arr) {
+      if(arr.length <= 1) return arr;
+      var baseIndex, baseValue, leftArr = [], rightArr = [];
+      baseIndex = Math.floor(arr.length/2);
+      baseValue = arr.splice(baseIndex, 1)[0];
+      console.log('base:', baseIndex, baseValue);
+
+      arr.forEach(function(val, idx) {
+        console.log('foreach:', val, idx)
+        if(val < baseValue) {
+          leftArr.push(val);
+        } else {
+          rightArr.push(val);
+        }
+        console.log('第' + (idx + 1) + '次排序后：', arr);
+      })
+
+      return quickSort(leftArr).concat(baseValue, quickSort(rightArr));
+    }
+
+    var quickArr = [1,11,5,6];
+    console.log('quick res:', quickSort(quickArr));
+
+  </script>
+</body>
+</html>

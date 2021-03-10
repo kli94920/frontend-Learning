@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deep Copy</title>
+</head>
+<body>
+  <script>
+    function deepCopy(target) {
+      var res;
+      if(typeof target === "object") {
+        // Object、Array、null
+        if(Array.isArray(target)) {
+          res = [];
+          target.map(function(val, idx) {
+            res.push(deepCopy(val));
+          })
+        } else if(target === null) {
+          res = null;
+        } else {
+          res = {};
+          for(var k in target) {
+            res[k] = deepCopy(target[k]);
+          }
+        }
+
+      } else {
+        res = target;
+      }
+      return res;
+    };
+  </script>
+</body>
+</html>
