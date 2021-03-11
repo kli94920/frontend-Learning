@@ -1,0 +1,1405 @@
+（一）、浏览器相关
+	核心知识
+        1.浏览器内核,渲染引擎,js引擎
+        2.js引擎执行机制
+        3.浏览器渲染页面的流程
+        4.浏览器并发请求
+
+	细节知识
+        1.js层面优化(减少重绘和重排)
+        2.script中defer和async的区别
+        3.浏览器并发请求
+        4.浏览器内核的种类
+            
+	一.浏览器内核,渲染引擎,js引擎之间的关系
+		(1)浏览器内核分为两部分：渲染引擎和js引擎;
+		(2)渲染引擎负责解析html和css;，生成render树，绘制页面
+			渲染引擎决定浏览器如何显示网页的内容;
+			同一网页在不同的渲染引擎下的渲染效果不同,这就是浏览器兼容性问题的根源;
+		(3)js引擎负责解析js语言;
+			Chrome的渲染引擎：Webkit -> Blink；JS引擎：V8
+	二.浏览器并发限制
+		同一时间内针对同一域名下的请求有一定数量限制;
+		(1)ie10/11 6个
+		(2)firefix ---6个
+		(3)chrome ---6个
+		
+	三.js异步处理机制
+		js是单线程的;执行机制是事件循环;实现方式是任务队列
+		(1)主线程-所有同步任务都在主线程上,形成一个执行栈;
+		(2)任务队列- 主线程外,还有一个任务队列,只要异步任务有了运行结果,就在任务栈放置一个事件;
+		当执行栈所有同步任务执行结束后,系统读取任务栈;任务栈中的异步任务结束等待状态,进入执行栈,开始执行;
+		(3)事件循环-主线程不断重复第三步;
+
+		https://www.cnblogs.com/chenyoumei/p/9156849.html
+	四.浏览器渲染页面的流程
+		(1)构建DOM树
+			html文档中的所有内容都是节点,哥哥节点之间拥有层级关系;读取html文档,将html中的内容构建成DOM树;
+		(2)构建CSSOM树
+			css文档中,所有元素都是节点,与html中的节点一一对应;从而来构建cssOM树;
+			在构建DOM树的过程中,在head标签中遇到link标签,浏览器会立即发出对该css资源的请求,并进行CSSOM树的构建;
+		(3)加载js
+			1.在构建DOM树的过程中,当html遇到一个script标签时,会立即阻塞DOM树的构建;
+			将控制权交给js引擎,等到js引擎运行完毕,浏览器从中断的地方恢复DOM的构建;
+			2.原因在于js会对DOM节点进行操作,为了防止无效操作,节省资源;
+		(4)构建渲染树
+			1.渲染树是由DOM树,CSSOM树合并而成;但是并不是等DOM树和CSSOM树加载完成才开始的,会形成一边解析,一边加载的现象;
+			2.根据渲染树计算每个可见元素的布局,并输出绘制流程,将像素渲染到屏幕上;
+		(5)布局
+			完成各个节点的尺寸和位置
+		(6)绘制
+			将布局后的节点显示在屏幕上
+		(7)重绘和重排
+			1.重绘
+			屏幕的一部分要重绘;
+			渲染树节点发生改变,但不影响该节点在页面中的空间位置以及大小;
+			2.重排
+			渲染树节点发生变化,影响节点的位置;
+			需要重新生成渲染树,重新布局
+
+	一.js层面谈页面优化
+		1.解决阻塞渲染-将script标签放在页面底部,或者defer async
+		2.减少对DOM的操作
+			修改和访问dom会造成页面的回流和重绘;
+			循环生成dom时,进行一次性的插入;
+			让经常改动的节点脱离文档流;
+
+		https://www.cnblogs.com/xiyouchen/p/9199473.html
+	二.script中defer和async的区别
+		1.没有defer和async
+		浏览器会立即下载并解析js脚本;
+		2.async-异步加载
+		async可以在页面渲染的同时,在后台下载脚本;
+		多个异步脚本按它们下载的先后顺序执行;
+		3.defer-延迟加载
+		浏览器立即下载;但是等页面加载完成之后加载;
+
+	四.浏览器内核的种类
+		(1)IE浏览器的内核-Trident
+		(2)火狐浏览器内核-Gecko
+		(3)欧朋浏览器内核-Presto
+		(4)谷歌和safari浏览器内核-webkit
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+
+（二）、网络通信相关
+	核心知识
+		一.tcp/ip协议
+		二.tcp和udp的区别
+		三.tcp的三次握手
+		四.tcp的四次挥手    
+		五.HTTP协议
+			1.http请求过程
+			2.http协议特点
+			3.http报文结构
+		六.tcp,udp,ip,http,socket之间的关系
+    
+    https://www.cnblogs.com/fundebug/p/differences-of-tcp-and-udp.html
+    一.TCP/Ip协议
+        1.tcp/ip协议是一系列网络协议的总称,这些协议分为四层,链路层,网络层,传输层,应用层;
+        2.四层网络模型
+            (1)链路层
+                负责封装和解封装IP报文,发送和接收报文;
+            (2)网络层
+                负责路由以及把分组报文发送给目标网络
+            (3)传输层
+                负责对报文进行分组和重组,并以Tcp或udp协议格式封装报文;
+            (4)应用层
+                负责向用户提供应用程序, 比如http协议,ftp协议;
+    二.TCP和Udp
+        1.Udp协议
+            (1)面向无连接,无需要进行三次握手进行连接
+            (2)支持一对多的传输方式
+            (3)不可靠性,
+        2.tcp协议
+            (1)面向连接,需要进行三次握手进行连接
+            (2)可靠传输
+            (3)仅支持一对一传输
+
+    三.TCP三次握手
+        (1)第一次握手
+            客户端将标志位SYN设置为1,随机产生一个seq=j;将数据包发送给服务端;
+        (2)第二次握手
+            服务端发送ACK=1,ack=j+1;确认连接;SYN=1,seq=k;发送向客户端的连接;
+        (3)第三次握手
+            客户端收到请求;发送ACK=1;ack=k+1;确认连接
+
+    四.TCP四次挥手
+        (1)第一次挥手
+            客户端发送FIN信号 seq=m;
+        (2)第二次挥手
+            服务端收到数据,发送ACK=1 ack=m+1;表示服务端断开与客户端的连接;
+        (3)第三次挥手
+            服务端发送FIN seq=n;
+        (4)第四次挥手
+            客户端收到请求,发送ACK=1 ack=n+1;确认    
+
+    五.HTTP协议
+        1.HTTP请求流程-利用tcp/ip协议进行网络通信;
+        
+        2.HTTP协议特点
+        (1)通过请求和相应模型来进行通信;
+        (2)http是无状态协议
+        (3)持久连接-http1.0以上支持持久连接;
+        (4)管线化-并行发送多个请求;
+
+        3.HTTP报文结构
+        (1)请求行-http协议版本;状态码;
+        (2)首部字段-authorization;content-type;date;
+        (3)请求主体
+    
+    六.tcp,udp,ip,http,socket之间的关系
+        (1)IP：网络层协议 (用于网络之间的通信协议)
+            TCP/IP代表传输控制协议/网际协议，指的是一系列协议。
+        (2)TCP和UDP：传输层协议
+            TCP和UDP都是用来传输其他协议的;
+            Tcp是面向连接的，可靠的传输协议;
+            Udp是非连接的,不可靠的运输协议;
+        (3)HTTP：应用层协议
+            Web客户端和Web服务器进行通信的协议。
+        (4)SOCKET：TCP/IP网络的API
+            Socket 接口是TCP/IP网络的API，Socket接口定义了许多函数或例程，用以开发TCP/IP网络上的应用程序。
+
+       总结：需要IP协议来连接网络;
+            TCP是一种允许我们安全传输数据的机制;
+            使用TCP协议来传输数据的HTTP是Web服务器和客户端使用的特殊协议。
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+（三）、设计模式与数据结构
+	核心知识
+		一.常用的设计模式
+		(1)工厂模式
+		(2)单例模式
+		(3)迭代器模式-Array的forEach,map,filter等方法;
+		(4)代理模式
+		(5)观察者模式-vue中watch的使用
+		(6)组合模式
+		(7)链式调用-promise的应用
+		https://blog.csdn.net/qq_31337311/article/details/78792094
+
+    一.数组,链表,hash表的基础
+    (1)数组(栈和队列)
+        1.数组中的各个元素的存储是有先后顺序的,它们在内存中按照先后顺序连续放在一起;
+        2.通过下标查询数据比较方便
+        3.数据是连续存储
+    (2)链表
+        1.链表是一种在存储上非连续,非顺序的存储结构;数据元素的逻辑顺序通过链表中的指针链接实现的;
+        2.链表由一系列节点组成,节点包括两个部分:一个是存储数据元素的数据域,一个是存储下一个节点的指针;
+        3.数组中插入,删除数据项,需要移动其他数据项,性能慢;
+        链表的插入和删除,只需要改变个别元素的指针即可,大大提高链表的删除和插入的速度;
+        4.应用场景：hash底层,
+    (3)hashMap
+        1.hash表是根据关键值(key)而直接进行访问的数据结构,通过关键码值映射到一个位置来访问数据,加快查找的速度;
+        2.HashMap底层就是一个数组结构,数组中的每一项又是一个链表,数组+链表结构;
+        新建一个HashMap的时候,就会初始化一个数组,Entry就是数组中的元素,entry对象(entry包含key,value,next三部分),这就构成了链表,
+        当需要存储一个Entry对象时,会根据hash算法来决定在其数组中的位置,在根据equals方法决定其在该数组位置上的链表中的存储位置;
+        3.优点
+        数组存储区间连续,插入数据困难;链表存储空间离散,插入容易;
+        hashMap综合实现寻址容易,插入容易
+    (4)二叉树
+
+    二.排序算法
+		(1)冒泡排序
+		function bubbleSort(arr) {
+			var len = arr.length;
+			for (var i = 0; i < len; i++) {
+				for (var j = 0; j < len - 1 - i; j++) {
+					if (arr[j] > arr[j+1]) {        //相邻元素两两对比
+						var temp = arr[j+1];        //元素交换
+						arr[j+1] = arr[j];
+						arr[j] = temp;
+					}
+				}
+			}
+			return arr;
+		}
+		
+		
+		
+		(2)快速排序
+		let testArray = [3, 1, 2, 5, 6, 4];
+		let quickSort = (array) => {
+			// 1.进行数组长度判断
+			if (array.length < 2) return array;
+			// 2.设置变量
+			let leftArray = [];
+			let rightArray = [];
+			let baseDigit = array[0];
+			// 3.进行遍历操作
+			array.forEach(element => {
+				if (element < baseDigit) {
+					leftArray.push(element);
+				} else if (element > baseDigit) {
+					rightArray.push(element);
+				}
+			});
+			// 4.进行递归拼接
+			return quickSort(leftArray).concat(baseDigit, quickSort(rightArray))
+		};
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+（四）、JS相关
+	核心知识
+    一.js基础
+		1.数据类型(基本数据类型和引用数据类型)
+			(1)基本数据类型 Number String Boolean Undefined Null
+			(2)引用数据类型 Object Array Function
+			(3)深复制与浅复制
+				1.浅复制就是通过简单的copy来进行复制,问题就是会出现两者指向同一个数据
+				2.深复制是如果复制对象是引用数据类型时,该对象进行递归复制
+
+		2.原型_proto_,prototype,原型链,new操作符
+			(1)原型
+				对于每一个对象,内部都有_proto_指向构造函数的prototype;obj._proto_=构造函数的prototype;
+			(2)原型链
+				查找对象中的某一个属性时，首先在这个对象自身查找，如果没有查到;
+				在这个对象的_proto_中进行查找这个属性，如果没有查到，则在原型的_proto_属性中继续查找，这样就形成了原型链
+			(3)构建对象的过程(new操作符)
+				1.初始化一个空对象
+				2.将对象的_proto_指向构造函数.prototype
+				3.将构造函数中this指向对象
+				4.将生成的对象赋给变量
+		
+		3.js继承的方式
+			(1)原型继承
+				// 1.父构造器
+				function Father(){ 
+					this.status = true; 
+				} 
+				Father.prototype.getSuper = function(){ 
+					return this.status; 
+				};
+				// 2.子构造器 
+				function Son(){ 
+					this.substatus = false; 
+				} 
+				// 3.继承父构造函数
+				Son.prototype = new Father(); 
+				Son.prototype.getSub = function (){ 
+					return this.substatus; 
+				}; 
+			(2)借用构造函数继承
+				function Father(){ 
+					this.colors = [1,2,3]; 
+				} 
+				function Son(){ 
+					// 通过借用父构造器来实现
+					Father.call(this); 
+				} 
+				var instance1 = new Son(); 
+				instance1.colors.push(4);
+			(3)Es6中Class实现继承
+				class Father{
+					constructor(x, y) {
+						this.x = x;
+						this.y = y;
+					}
+				}
+				class son extends Father{
+					constructor(x, y, age) {
+						super(x, y); // 调用父类的constructor(x, y)
+						this.age= age;
+					}
+					toString() {
+						return this.color + ' ' + super.toString(); // 调用父类的toString()
+					}
+				}
+
+		4.事件机制
+			(1)事件简介
+				事件是用来实现js和html之间进行交互的,可以用侦听器来预定事件;以便事件执行相应的代码;
+			(2)DOM事件流-事件流分为三个阶段
+				1.事件捕获阶段-事件流从window开始传递到具体的节点;
+				2.目标阶段-事件流到达目标节点;
+				3.事件冒泡阶段-事件从目标元素冒泡到document,window;
+			(3)事件委托机制-利用事件的冒泡原理;
+			(4)事件对象
+				1.当触发dom的某个事件时,会产生事件对象event;这个对象包含所有与事件有关的信息;
+				2.ie中window.event不需要参数就直接可以拿到事件对象;在firefox中必须要有参数传递
+				3.ie中阻止冒泡e.cancelBubble();其他里e.stopPropertation()
+		
+		5.AJAX原理-只有第三步是异步;
+			通过XmlHttpRequest对象与服务器进行通信,实现页面局部刷新;
+			(1)var xhr=new XMLHttpRequest();
+			(2)xhr.method(url,data,false);
+			(3)xhr.send();
+			(4)xhr.onreadyStatusChange=function(){
+				if(xhr.status===200&&xhr.readyStatus===4){}
+			}
+		
+		6.作用域和作用域链
+			(1)每个函数内部都有一个scope属性，里边存储着当前函数能够访问的变量
+			(2)当在一个函数内访问某一个变量的时候，会首先在这个函数的scope属性中进行查找;
+			如果没有找到就在当前函数的上一层函数中的scope中进行查找,一直到window,这样就形成了作用域链
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+（五）、移动端相关
+	一.基础知识
+		(1)屏幕尺寸就是设备的对角线的长度;单位英寸;1英寸=2.54cm;
+		(2)设备分辨率是设备所拥有的像素块;
+		(3)ppi-每英寸像素数;
+		(4)dpr(设备像素比) = 设备像素 / 设备独立像素(逻辑像素);
+		苹果手机一般是2;相当于使用多少物理像素展示页面
+		(5)css中px代表的含义
+		设备像素比为2:1的条件下,1px相当于有2*2个点组成;
+    
+    二.css像素和设备像素的关系
+		(1)css像素--适用于web编程,指的是代码中使用的逻辑像素，是一个抽象概念，实际上不存在;
+		(2)设备像素--物理像素,设备能控制的最小单位,手机的分辨率1920*1080就是设备像素单位;
+		(3)联系 dpr(设备像素比)
+			设备像素比,代表设备像素到css像素的转换关系;表示使用多少物理像素显示1px的css像素;
+    
+    三.解决问题
+		1.保证图片的像素一致 css图片大小默认100px*100px;
+			在dpr为2的手机上,图片大小= css图片 / dpr;
+		2.页面缩放的原理
+			页面放大一倍后,1px所占有的像素数放大占用更少的物理像素;
+
+    四.移动端视口viewport
+        width:20%-块元素的默认的宽度是父元素的25%;
+        body元素的默认宽度是html宽度的25%;html元素的宽度是基于视口的;
+		(1)布局视口(浏览器厂商希望手机也能浏览pc端设计的网站)
+			1.布局视口-移动端css布局的依据视口，css布局会根据视口来计算;
+			2.pc端浏览器中,视口只有一个,视口的宽度=浏览器窗口的宽度；
+			3.移动端的布局视口宽度一般是980px或者1024px
+		(2)视觉视口
+			用户能够看到网站的区域-也就是手机的宽度
+		(3)理想视口
+			1.移动端的布局视口大小一般是980px或者1024px;会导致出现滚动条;
+			手机更适合窄的网站,因此布局视口并不是最理想的宽度
+			2.理想的布局视口;将布局视口设为理想视口
+			<meta name="viewport" content="width=device-width" />
+    五.300ms双击延迟
+		(1)双击缩放是300ms延迟的主要原因，
+			双击缩放,用手指在屏幕上快速点击两次，浏览器会将网页缩放至原始比例;
+			由于用户可以进行双击缩放或者双击滚动的操作，当用户一次点击屏幕之后，
+			浏览器不能立即判断用户是要单击操作还是双击操作，所以浏览器等待300ms,以判断用户是否再次进行点击；
+
+		(2)解决方案-fastClick库
+			实现原理在检测到touchend事件的时候;通过DOM自定义事件模拟发出一个click事件;
+			并把浏览器300ms之后的click事件阻止掉
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+（六）、Vue相关
+	一.Vue的优点
+		1.轻量级框架
+		2.双向数据绑定
+		3.组件化: 
+		4.虚拟dom: dom操作非常消耗性能,使用虚拟dom极大提高性能;
+        
+	二.父子组件之间的通信
+		(1)父组件与子组件通信-使用props
+		(2)子组件与父组件通信-使用$emit
+	
+	三.v-show和v-if之间的区别
+		(1)都能控制元素的显示和隐藏
+		(2)v-show本质是通过控制css的display设置为none,控制隐藏,只会编译一次;
+		v-if是动态的向dom树添加或删除元素,不停的销毁和创建比较消耗性能;
+		(3)v-show切换开销小;v-if性能开销大
+
+	四.如何让css只在当前组件起作用
+		1.在组件的style中添加scoped属性
+	
+	五.keep-aive的作用
+		1.keep-alive是vue内置的一个组件,可以使被包含的组件保留状态,避免被重新渲染;
+	
+	六.如何获取dom
+		1.ref="domName",用法 this.$refs.domName
+	
+	***七.vue-loader是什么,它的用途是什么
+		1.vue-loader的作用是解析和转换vue文件;提取其中的逻辑代码script,代码样式style,以及html模板template，
+		把他们交给对应的loader去处理;
+
+	八.v-modal的使用
+		1.v-modal用于表单数据的双向绑定,
+		2.本质是v-bind绑定一个value属性;v-on指令给当前元素绑定input事件;
+	
+	九.vue项目中src目录中每个文件夹和文件的用法
+		1.assets文件夹存放静态资源
+		2.components是存放组件
+		3.router是定义路由相关的配置
+		4.app.vue是一个应用主组件
+		5.main.js是入口文件
+	
+	十.简述computed和watch的使用场景
+		1.computed计算属性是为了模板中的表达式简洁易于维护;
+		计算属性基于响应式依赖进行缓存,如果其中的任意一个值未发生变化,
+		它的调用就是上一次计算缓存的数据,因此提高程序的性能;
+		2.method中每调用一次就会重新计算一次,浪费性能;
+		3.watch: 计算属性computed初始化的时候就可以被监听到并且计算,
+		但是watch是发生改变的时候才触发;
+		4.使用场景
+			(1)当一个属性受多个属性影响的时候使用computed,典型的使用就是购物车商品结算的时候;
+			(2)当一条数据影响多条数据的时候使用watch: 搜索数据
+	
+	十一.v-on监听多个方法
+		<button v-on="{mouseenter: onEnter,mouseleave: onLeave}">鼠标进来1</button>
+		<button @mouseenter="onEnter" @mouseleave="onLeave">鼠标进来2</button>
+
+	十二.$nextTick的使用
+		1.当你修改data的值然后马上获取这个dom元素的值,是不能获取到更新后的值;
+		因为vue中dom更新是异步更新,使用$nextTick回调可以获取到更新后的值
+        
+	十三.vue组件中data为什么必须是一个函数
+		1.组件中的data写成一个函数,数据以函数返回值的形式定义;
+		这样每次复用组件的时候,都会返回一个新的data,相当于每个组件实例都有自己的私有空间,
+		它们只负责各自维护自己的数据,不会造成混乱;
+	
+	十四.vue双向数据绑定是如何实现的
+		1.vue双向数据绑定是数据和视图同步,数据发生变化,视图跟着变化,视图变化,数据跟着改变;
+		2.双向绑定的原理Object.defineProperty()方法来实现
+
+	十五.单页面应用和多页面应用的优缺点
+		1.单页面应用(SPA)是指只有一个主页面的应用,浏览器一开始要加载所有的必须的html,css，js;
+		所有的页面内容都包含在这个主页面中;
+		在交互的时候由路由程序动态载入,单页面的页面跳转,
+		2.优点：
+		(1)用户体验好,内容的改变不需要重新加载整个页面;
+		(2)前后端分离;
+		3.缺点
+		(1)不利于SEO; 
+		(2)初次加载耗时多;
+
+	十六.v-if和v-for的优先级
+		1.v-if和v-for共同使用时,v-for有更高的优先级;
+		共同使用时,v-if将分贝重复运行每个for循环中,使用时应该放到外层去;
+	
+	十七.assets和static的区别
+		1.相同点:
+			assets和static两个都是存放静态资源文件,项目中所需要的的文件图片,字体,图标都放在这两个文件下;
+		2.不同点:
+			(1)assets中存放的静态资源文件在项目打包时(npm run build)会将assets放置的静态资源文件进行打包,
+			打包可以理解为压缩体积,代码格式化;
+			打包后的静态资源最终都会放置在static文件中跟着index.html上传到服务器;
+			(2)static放置的静态资源就不会走打包压缩的流程,直接进入打包好的目录;
+			static中的资源由于没有进行打包压缩操作,文件的体积就大点
+		3.建议
+			(1)将template中所需的样式文件,js等文件放在assets中,走打包的流程;
+			(2)将第三方的资源放在static中,因为这些文件已经被处理
+	
+	十八.vue中常用的修饰符
+		1.stop 相当于js中的event.stopPropagation,防止事件冒泡
+		2.prevent 相当于js中的event.preventDefault,阻止默认行为
+		3.capture
+		4.self 只触发自己范围内的事件,不包含子元素
+		5.once 只会触发一次
+	
+	十九.SPA首屏加载慢如何解决
+		(1)将静态资源js,css等放在assets中进行打包压缩
+		(2)使用懒加载组件,减少第一次加载的压力
+		(3)使用loading提高用户体验
+	
+	二十.vue-router跳转和location.href有什么区别
+		1.location.href来跳转,页面刷新
+		2.vue-router,无页面刷新,静态刷新
+	
+	二十一.vue-slot
+		1.父组件在子组件内放置dom
+	
+	二十二.vue里中router-link在安卓上没反应
+		1.babel问题,安装babel(javascript语法的编译器) polypill插件来解决
+	
+	二十三.router中params和query的区别
+		1.query要用path来引入,params要用name来引入,接收参数是类似的;
+		2.query刷新页面不会丢失query里面的数据;
+		params刷新会丢失params里面的数据
+        
+	二十四.vue初始化页面闪动问题
+		1.vue初始化之前,我们写的代码还没有解析的情况下会出现花屏的现象
+		比如 {{ message }}的字样;
+		2.解决方法: 就是在我的根dom上加上  style="display: none;" :style="{display: 'block'}"
+	
+	二十五.什么是vue声明周期,有什么作用
+		1.每个vue实例被创建到销毁都需要经过一系列的过程;
+		2.在这个过程中会运行一些叫做生命周期钩子的函数,给开发人员在不同阶段添加自己代码的机会
+
+	二十六.第一次页面加载触发哪几个钩子
+		1.beforeCreate
+		2.created
+		3.beforeMounted
+		4.mounted
+
+	二十七.生命周期函数
+		(1)beforeCreated:实例创建之前
+		created: 实例创建后
+		(2)beforeMounted：组件挂载之前
+		mounted：组件挂载之后
+		(3)beforeUpdated：组件更新之前
+		Updated：组件更新之后
+		(4)beforeDestroyed:组件销毁之前
+		destroyed：组件销毁之后
+
+	二十八.created和mounted的区别
+		1.created:在模板渲染成html之前调用,
+		2.mounted:模板渲染成html后调用
+
+	二十九.vue获取数据是在哪个周期函数
+		1.在created之后都可以
+		2.如果操作dom,在mounted之后
+
+	路由面试题
+	一.mvvm框架
+		1.vue实现了双向数据绑定的mvvm框架,当视图层改变更新模型层,当模型层改变视图层;
+	
+	二.如何定义vue-router的动态路由,如何获取传递的值
+		1.在router目录下的路由中对path属性添加/:id;
+		使用router对象的params.id来获取值;
+	
+	三.$route和$router的区别
+		1.$router是vueRouter的实例,用于路由跳转$router.push方法;
+		2.$route为当前router跳转对象,用于获取当前路由的信息 name,path,query等信息;
+	
+	四.vue-router的两种模式
+		1.hash模式-地址栏url中的#符号
+		2.history模式-h5中的window.history
+        
+	五.vue-router实现路由懒加载( 动态加载路由 )
+		1.vue异步组件技术-懒加载-这种情况下一个组件生成一个js文件
+			{   path: '/home',
+				name: 'home',
+				component: resolve => require(['@/components/home'],resolve) }
+		2.路由懒加载-指定相同的webChunkName,合并打包成一个js文件
+			/** const Home =  () => import(/* webpackChunkName: 'ImportFuncDemo' */ /** '@/components/home') 
+			/** const Index = () => import(/* webpackChunkName: 'ImportFuncDemo' */ /** '@/components/index')
+			/** 3.webpack中的require.ensure();
+        
+        vuex面试题
+        一.vuex是什么,如何使用
+            1.vue框架中全局状态管理
+        
+        二.vuex有几种属性
+            1.state => 基本数据
+            2.getters => 基础数据派生出来的数据
+            3.mutations => 同步更改数据的方法
+            4.actions => 异步更改数据
+            5.modules => 模块化vuex
+        
+        三.vue中ajax请求放在组件的methods中还是vuex的actions中
+            1.如果请求的数据是组件公用,放在state中
+
+
+        一.dom异步更新队列机制
+			(1)只要观察到数据变化,vue将开启一个队列,并缓冲在同一事件循环中发生的所有数据改变;
+			这种在缓冲时去除重复数据对于避免不必要的计算和dom操作上非常重要;
+    
+		五.异步组件
+		https://segmentfault.com/a/1190000012138052?utm_source=tag-newest
+		1.实现前端模块化,按照权重的优先级顺序异步加载的实现方案;
+		2.vue中将组件定义为一个工厂函数,异步解析组件的定义;
+		组件需要时触发工厂函数;
+		3.将页面核心功能打包成一个核心模块,优先加载;
+		周边功能打包后,通过服务器异步加载;
+
+		六.深入响应式原理
+		(1)如何追踪数据变化
+			1.普通的js对象作为data的选项;vue将会遍历对象的所有property；
+			并使用Object.defineProperty,转化为getter和setter;
+			2.每个组件实例都有watcher实例,当data中的数据的setter触发时,
+			会通知watcher，从而使它关联的组件重新渲染;
+		(2)不能进行检测的事项
+			this.$set(obj,"属性","值");
+		(3)异步更新dom
+			1.vue在更新dom时是异步执行的;
+			2.如果同一个watch被多次触发,只会被推入到队列中一次,
+			取出数据重复和不必要的计算,提升dom渲染性能;
+			
+			
+			
+			
+			
+		
+		
+		
+		
+		
+（七）、React相关
+	https://segmentfault.com/a/1190000016885832?utm_source=tag-newest
+
+	一.React中key的作用是什么
+        (1)key是react用于追踪列表中哪些元素被修改,被添加或者被移除的辅助标识;
+        在开发过程中,需要保证元素的key在同级别元素中具有唯一性;
+        在reactDiff算法中react会借助元素的key值来判断该元素是创建的还是移动过来的,
+        从而减少不必要的元素重渲染;
+
+	二.调用setState之后发生了什么
+        1.在代码中调用setState函数之后,react会将传入的参数对象与组件当前的状态合并
+        2.然后触发所谓的调和过程(Reconciliation)
+        3.经过调和过程,react会以相对高效的方式根据新的状态构建react元素树,
+        重新渲染整个UI界面;
+        4.React得到元素树之后,react会自动计算新的树与老树的节点差异,然后根据差异
+        对界面进行最小化渲染;
+
+	三.react生命周期函数
+        1.初始化阶段
+            (1)getDefaultProps: 获取实例的默认属性
+            (2)getInitialState: 获取每个实例的初始化状态
+            (3)componentWillMount: 组件即将被装载,渲染到页面上
+            (4)render: 组件在这里生成虚拟的DOM节点
+            (5)componentDidmount: 组件被装载之后
+        2.运行中状态
+            (1)componentWillReceiveProps: 组件将要接收到属性的时候调用
+            (2)shouldComponentUpdate: 组件接收到新属性或者新状态的时候;
+            (3)componentWillUpdate: 组件即将更新不能修改属性和状态
+            (4)render: 组件重新描绘
+            (5)componentDidUpdate: 组件已经更新
+        3.销毁阶段
+            (1)componentWillUnmouunt: 组件即将销毁
+        
+	四.shouldComponentUpdate是做什么的(react性能优化是哪个周期函数)
+        1.shouldComponentUpdate这个方法用来判断是否需要调用render方法重新描绘dom    
+        2.因为dom的描绘非常消耗性能,如果能在shouldComponentUpdate中写出优化的domDiff算法
+        可以极大的提高性能;
+
+	五.为什么虚拟dom会提高性能
+        1.虚拟dom相当于在js和真实dom中间加了一个缓存,利用diff算法避免了不必要的dom操作,
+        从而提高性能;
+        2.利用js对象结构表示dom树的结构,然后用这个树构建一个真正的dom树,插到文档中当状态变更的
+        时候,重新构造一颗新的对象树,然后用新的树和旧的树进行比较,记录差异应用到真正的dom树上;
+
+	六.react diff原理
+        1.将树形结构按照层级分解,只比较同级元素;
+        2.给列表结构的每个单元添加唯一的key属性,方便比较;
+        3.react只会匹配相同class的组件;
+        4.合并操作,调用setState方法的时候,react会将其标记为dirty,到每一个事件循环结束,
+        react会检查所有标记dirty的component重新绘制
+        5.选择性子树渲染,开发人员可以重写shouldComponentUpdate提高diff的性能;
+
+	七.react中refs的作用是什么?
+        1.refs是react提供给我们安全访问dom元素或者某个组件实例的句柄;
+        2.我们可以为元素添加ref属性然后在回调函数中接收该元素,该元素作为回调函数的第一个参数
+        返回;
+        <input type="text" ref="{ ( el )=> { this.el = el }} }" ></input>
+        
+	八.展示组件和容器组件之间有何不同
+        1.展示组件专门通过props接收数据和回调,并且几乎不会有自身的状态;
+        2.容器组件更关心组件是如何运作的;
+        容器组件为组件提供数据和行为,将数据和行为作为回调提供给组件;
+
+	九.类组件和函数式组件有何不同
+        1.类组件不仅允许你使用更多的额外功能,比如组件的状态和生命周期钩子,
+        也能是组件直接访问store并维持状态;
+        2. 当组件仅仅接收props,并将组件自身渲染时,就是无状态组件;
+
+	十.组件的state和props之间有何不同
+        1.state是一种数据结构,用于组件挂载时所需数据的默认值;
+        state可能会随着时间的推移而发生改变;
+        2.props是组件的配置,
+
+	十一.受控组件
+	
+	
+	
+
+	十二.高阶组件
+        1.高阶组件是一个以组件为参数并返回一个新组件的函数;
+
+
+        this.props和this.state的更新可能是异步的,不能依赖他们的值去计算下一个state；
+
+	十三.应在react组件的何处发起ajax请求
+        1.在react组件中,应该在componentDidMount中发起网络请求;
+
+	十四.三种构建组件的方式
+        1.React.createClass();
+        2.ES6Class
+        3.无状态函数
+
+        https://www.jianshu.com/p/79f414053384
+	十五.简述flux思想
+        (1)mvc模式
+        1.mvc将业务数据(model)与用户界面(view)隔离,用控制器controller管理逻辑和用户输入;
+        2.mvc模式的问题是混乱的数据流动方式
+        (2)Flux模式
+        1.flux的核心思想是数据和逻辑永远单向流动;
+        2.flux应用中,数据从actin-dispatcher-store-view的路线是单向不可逆的;
+
+        dispatch-负责分发事件
+        store-负责保存数据,同时响应事件并更新数据
+        view-负责订阅store中的数据,并用这些数据渲染响应的页面;
+		
+		
+		umi和dva的使用
+		1.umi的简介
+			Umi以路由为基础,同时支持配置式路由和约定式路由,保证路由的功能完备,
+			然后配以生命周期完善的插件体系;
+
+		2.dva是一个基于redux和redux-saga的数据流方案;
+		
+		3.数据流向
+			(1)数据改变的时候可以通过dispatch发起一个action;
+				如果是同步行为直接通过Reducers改变state;
+				如果是异步行为,先触发Effects,然后流向Reducers改变state;
+				数据流向非常清晰简明;
+
+		4.基本概念
+			(1)state
+				表示Model的状态数据,通常表现为一个js对象,操作的时候要当做不可变数据来对待;
+			(2)action
+				action是一个普通的js对象,它是改变state的唯一路径;
+				通过dispatch函数调用一个action,从而改变对应的数据;
+				action必须带有type属性指明具体的行为;
+				dispatch(
+					{ type: 'aa' }
+				)
+			(3)dispatch
+				action是改变state的唯一路径,只是描述了一个行为;
+				dispatch是一个用于触发这个行为的方式;
+				reducer则是描述如何改变数据;
+			(4)reducer
+			(5)effects
+			(6)subscription
+			
+			
+			
+			
+			
+			
+
+
+
+
+
+
+
+（八）、笔试相关
+	一.html知识
+        1.localstorage和sessionStorage之间的区别
+        2.iframe获取子元素和获取父元素
+        3.css选择器的权重
+        4.css中position的四种定位
+
+    二.js知识
+        1.let和const,块级作用域的使用
+        2.export和export default之间的区别
+        3.@import和link之间的区别
+        4.根据对象的属性排序
+        5.函数内变量提升问题
+        6.number,undefined,null,array,object五种数据类型的克隆
+        7.将多维数组转为一维数组
+        8.数组去重的三种方法
+        9.array.filter的实现原理
+        10.将类数组转为数组
+        11.call和apply的使用
+        12.防止多次请求的问题
+        13.js继承的方式
+        14.promise的原理
+        15.图片的懒加载问题
+        16.页面滚动加载数据
+        17.渲染几万数据页面不卡顿
+        18.判断数据类型
+        19.判断继承关系
+
+
+     一.html知识
+        (1)localStorage和sessionStorage
+            localStorage是永久存储; sessionStorage关闭浏览器后即消失;
+            存储的数据类型都是字符串;
+        (2)iframe的使用
+            1.父页面获取子页面的内容
+                $('#child')[0].contentWindow
+            2.子页面获取父页面之间
+                window.parent.变量
+            3.子页面与子页面之间的通信
+                window.parent.$('#child1')[0].contentWindow
+        (3)documentFragment-用于批量添加dom;
+        (4)选择器以及其权重
+            内联样式  1000;
+            id选择器  100;
+            class选择器-属性选择器-伪类选择器-子类选择器  10;
+            元素选择器 1;
+        (5)定位
+            1.正常文档流static-正常定位
+            2.固定定位fix-相对于浏览器窗口进行定位
+            3.相对定位relative-相对于元素原来的位置进行定位
+            4.绝对定位absolute-相对于已经定位的且最近的父元素进行定位
+
+    二.js知识
+        1.let和const的使用
+            (1)let不存在变量提升问题;不允许重复声明；
+            (2)块级作用域：在块级作用域中声明的变量，不受外部的影响
+            (3)const声明一个只读的常量，一旦声明，常量的值就不能改变
+        
+        2.export和export default之间的区别;
+            (1)export和export default都用于导出常量,函数,文件,模块;
+            (2)在一个文件中,可以都多个export,只能由一个export default;
+    
+        3.@imoport和link之间的区别-浏览器加载和渲染顺序
+            (1)渲染顺序不同;
+            link中的样式会在页面加载时同时加载;
+            @import中的css样式会等到页面加载之后加载;
+            (2)权重不同
+            @import引入的文件加载后会被置顶css样式,
+            link中的样式能够将其覆盖;    
+    
+        4.对象的某个属性排序问题
+            let obj = [ { a: 1}, {a: 2}];
+            obj.sort((a,b) => {
+                return a-b;
+            })
+
+        ***5.变量提升问题(关键函数内的变量提升)
+            console.log(v1); undefined  //第一次undefined存在变量提升问题
+            var v1 = 100;
+            function foo() {
+                console.log(v1); // undefined  第二次函数内有这个变量,从函数中获取;
+                var v1 = 200;
+                console.log(v1); // 200
+            }
+            foo();
+            console.log(v1); // 100
+    
+        6.Number undefined null array object五中数据类型的深克隆
+            function deepClone(target) {
+                let result;
+                if (typeof target === 'object') { // 处理 null array object 
+                    if (Array.isArray(target)) {
+                        result = []; 
+                        for (let i in target) {
+                            result.push(deepClone(target[i]))
+                        }
+                    } else if(target===null) {
+                        result = null;
+                    } else {
+                        result = {};
+                        for (let i in target) {
+                            result[i] = deepClone(target[i]);
+                        }
+                    }
+                } else { // 处理 undefined Number
+                    result = target;
+                }
+                return result;
+            }
+    
+        7.将多维数组转为一维数组
+            (1)通过array.flat()无限循环实现来实现;
+            const arr = [ 1, [2, 3, 4], 5];
+            const arr1 = arr.flat().flat();
+
+            (2)通过正则实现;
+            const arr3 = JSON.parse("["+JSON.stringify(arr).replace(/\[|\]/g,'')+"]")
+   
+            (3)通过reduce来实现
+            方法接收一个函数作为累加器，数组中的每个值（从左到右）开始缩减，最终计算为一个值。
+            const test = [1,2,3,4]
+            test.reduce( (a,b)  => {
+                returun a + b;
+            });
+        
+        8.数组的去重
+            (1)使用set方法
+            const arr11 = [1,1,"1",true,true,"true",false,false,"false",{},{}];
+            使用Set  set对象允许存储任何类型的唯一值,无论是原始值或者是对象引用;
+            const arr12 = Array.from(new Set(arr11))
+        
+            (2)使用indexOf
+            const unique2 = arr => {
+                const res = [];
+                for (let i = 0; i < arr11.length; i++) {
+                if (res.indexOf(arr11[i]) === -1) res.push(arr11[i]);
+                }
+                return res;
+            }
+
+            (3)利用对象的键值唯一性
+			
+			
+			
+			
+			
+			
+			
+			
+    
+        9.Array.filter()的原理实现方式
+            Array.prototype.filter = function(callback, thisArg) {
+                if (this == undefined) {
+                    throw new TypeError('this is null or not undefined');
+                }
+                if (typeof callback !== 'function') {
+                    throw new TypeError(callback + 'is not a function');
+                }
+                const res = [];
+                const O = Object(this);
+                const len = O.length >>> 0;
+                for (let i = 0; i < len; i++) {
+                    if (callback.call(thisArg, O[i], i, O)) {
+                        res.push(O[i]);
+                    }
+                }
+                return res;
+            }
+    
+        10.将类数组转为数组
+            (1)使用Aray.from
+            const arr13 = Array.from(document.querySelectorAll("div"));
+        
+            (2)使用扩展运算符
+            [...document.querySelectorAll("div")]
+
+        11.call和apply的使用
+            (1)用于改变函数中的this的指向
+            (2)借用别的对象的方法
+            Function.prototype.apply = function(context, args) {  
+                context = window
+                if (typeof this !== 'function') {
+                    throw new TypeError('Type Error');
+                }
+                const fn = Symbol('fn');
+                context[fn] = this;
+                const res = context[fn](...args);
+                delete context[fn];
+                return res;
+            }
+            var test111 = [ 8, 3, 10, 5];
+            var max = Math.max.apply(null,test111);
+        
+        12.防止多次请求
+            1.问题隐患
+                (1)一些短时间内频繁触发的事件会导致占用过多的资源
+                (2)频繁触发的事件,例如mousemove,scroll,resize等
+            2.原理实现
+                (1)初次调用函数时,设置一个定时器,在指定的间隔之后运行代码;
+                (2)第二次调用时间小于间隔时间,清除定时器并重新设置
+                (3)如果定时器已经执行,此次操作没有意义
+                (4)目的是只有执行函数的请求间隔一段时间之后执行
+            3.使用场景
+                懒加载、滚动加载、加载更多或监听滚动条位置；
+                百度搜索框，搜索联想功能；
+                防止高频点击提交，防止表单重复提交；
+                表单校验
+        
+            function throttle(fn,wait){
+                    var timer = null;
+                    return function(){
+                        if(!timer){
+                            timer = setTimeout(function(){
+                                fn.apply(this,arguments);
+                                timer = null;
+                            },wait)
+                        }
+                    }
+                }
+                function handle(){
+                    console.log("执行效果");
+                }
+    
+        13.js继承的方式
+            (1)原型继承
+                // 1.父构造器
+                function Father(){ 
+                    this.status = true; 
+                } 
+                Father.prototype.getSuper = function(){ 
+                    return this.status; 
+                };
+                // 2.子构造器 
+                function Son(){ 
+                    this.substatus = false; 
+                } 
+                // 3.继承父构造函数
+                Son.prototype = new Father(); 
+                Son.prototype.getSub = function (){ 
+                    return this.substatus; 
+                }; 
+            (2)借用构造函数继承
+                function Father(){ 
+                    this.colors = [1,2,3]; 
+                } 
+                function Son(){ 
+                    // 通过借用父构造器来实现
+                    Father.call(this); 
+                } 
+                var instance1 = new Son(); 
+                instance1.colors.push(4);
+            (3)Es6中Class实现继承
+                class Father{
+                    constructor(x, y) {
+                        this.x = x;
+                        this.y = y;
+                    }
+                }
+                class son extends Father{
+                    constructor(x, y, age) {
+                        super(x, y); // 调用父类的constructor(x, y)
+                        this.age= age;
+                    }
+                    toString() {
+                        return this.color + ' ' + super.toString(); // 调用父类的toString()
+                    }
+                }
+    
+        14.Object.assing()
+            (1)方法用于将所有可枚举属性的值从一个或多个源对象复制到目标对象,
+            并将返回目标对象,这个过程是浅拷贝;
+            (2)对5中对象进行深拷贝
+
+        
+        15.Promise的原理
+            1.promise的基本概念
+                (1)promise对象用于表示一个异步操作的完成(成功或者失败)及其结果值;
+                (2)promise对象代表一个被创建出来不一定已知的值;
+                它能将异步操作的最终结果和相应的处理程序关联;
+                异步方法并不会立即返回最终的值,而是会返回一个promise,方便未来交给使用者;
+                (3)Promise.then和Promise.prototype.catch方法返回的是promise;
+                (4)pending状态转为fulfilled和rejected时,promise的then方法相应的
+                处理程序就会被调用;
+
+            2.promise的作用
+                (1)通过纯碎的回调函数的形式进行处理;
+                (2)可以将异步操作队列化,按照期望的顺序执行,返回符合预期的结果;
+                (3)可以在对象之间传递和操作promise,帮助我们处理队列
+            
+            3.Promise的串行和并行
+                (1)promise.all()-执行源码
+                Promise.myAll = function(promiseArr) {
+                    return new Promise((resolve, reject) => {
+                        const ans = [];
+                        let index = 0;
+                        for (let i = 0; i < promiseArr.length; i++) {
+                        promiseArr[i]
+                        .then(res => {
+                            ans[i] = res;
+                            index++;
+                            if (index === promiseArr.length) {
+                            resolve(ans);
+                            }
+                        })
+                        .catch(err => reject(err));
+                        }
+                    })
+                }
+                (2)promise.race()-执行源码
+                Promise.race = function(promiseArr) {
+                    return new Promise((resolve, reject) => {
+                        promiseArr.forEach(p => {
+                        // 如果不是Promise实例需要转化为Promise实例
+                        Promise.resolve(p).then(
+                            val => resolve(val),
+                            err => reject(err),
+                        )
+                        })
+                    })
+                }
+        16.图片的懒加载问题
+            1.给img标签设置自定义属性data-src="default.png",当检测到图片
+            出现在窗口之后再给图片设置src属性;
+
+        17.页面滚动加载数据
+            1.原理是监听页面滚动事件,
+                clientHeight-网页可见区域的高度
+                scrollTop   -网页被卷去的高度   
+                scrollHeight-网页全文的高度
+            2.用于判断页面滚动是否见底
+
+        18.渲染几万条数据页面不卡顿
+			setTimeout( () => {
+				const total=100000;  //数据数量
+				const once=20; //一次插入的数量
+				const count=Math.ceil(total/once); //循环次数
+				const loop=0;
+				const ul=document.querySelector("ul"); //渲染的根元素
+				// 进行添加元素
+				function add() {
+					const fragement=document.createDocumentFragment();// 创建frage
+					for(let i=0;i<once.length;i++) {
+						const li=document.createElement("li");
+						li.innerText=i;
+						fragement.appendChild(li);
+					}
+					ul.append(fragement);
+					loop++;
+					// 进行渲染的次数
+					if (loop < count) {
+						add();
+					}
+				}
+			},0)    
+
+        19.将虚拟dom转为真实的dom
+			function render(vnode,container) {
+                // 对于数字的处理
+                if ( typeof vnode == 'number') {
+                    vnode=String(vnode);
+                }
+                // 对于字符串的处理
+                if ( typeof vnode == "string") {
+                    return document.createTextNode(vnode);
+                }
+                // 普通dom的处理
+                const dom=document.createElement(vnode.tag);
+                if (vnode.attrs) {
+                    Object.keys(vnode.attrs).forEach( key => {
+                        const val=vnode.attrs[key];
+                        dom.setAttribute(key,val)
+                    })
+                }
+                // 对子数组进行递归操作
+                vnode.children.forEach( child => render(child.dom))
+                return dom;
+            }
+        
+        
+
+        20.判断数据类型(typeOf和Object.prototype.toString.apply())
+        
+        21.判断继承关系 child instanceof parent
+        
+        22.区分h5页面(更具doctype类型)
+        
+    
+       
+    
+        1.题目
+			var promise = new Promise((resolve, reject) => {
+				console.log(1)
+				resolve() //进行异步延迟
+				console.log(2)  //不影响这一步的执行
+			})
+			promise.then(() => {
+				console.log(3)
+			})
+			console.log(4)
+        
+        2.题目
+			var promise = new Promise(function(resolve, reject){
+				setTimeout(function() {
+					console.log(5555)
+					resolve(1);
+				}, 3000)
+			})
+			promise.then(res => {
+				return Promise.resolve(2); // 相当于返回新的promise
+			}).then( n => {
+				console.log(n)
+			})
+
+        3.题目
+			promise.then(() => {
+				return 2
+			}).then((n) => { // 本次链式调用的Promise对象还是promise,没有走resolve()
+				console.log(n)
+			});
+
+        4.题目
+			promise.then(2).then((n) => {
+				console.log(n)
+			});
+			
+      
+		// https://blog.csdn.net/weixin_43586120/article/details/88233336
+    
+  
+        5.题目
+			let promise = new Promise(function(resolve,reject){
+				console.log('Promise');
+				resolve();
+			});
+			promise.then(function(){
+				console.log('resolved');
+			});
+			console.log('Hi!');
+       
+        **6.题目
+			setTimeout(function() { 
+				console.log(1) 
+			}, 0); 
+			new Promise(function executor(resolve) { 
+				console.log(2); 
+				for( var i=0 ; i<10000 ; i++ ) { 
+					i == 9999 && resolve(); 
+				} 
+				console.log(3); 
+			}).then(function() { 
+				console.log(4); 
+			}); 
+			console.log(5);  
+        
+        7.题目
+			const promise = new Promise((resolve, reject) => {
+				console.log(1)
+				resolve()
+				console.log(2)
+			})
+			promise.then(() => {
+				console.log(3)
+			})
+			console.log(4) 
+
+        8.题目
+			const promise1 = new Promise((resolve, reject) => {
+				setTimeout(() => {
+					resolve('success')
+				}, 1000)
+			})
+			const promise2 = promise1.then(() => {
+				// throw new Error()走的是catch,状态是rejected
+				// return new Error()走的是then,状态是fulfilled  
+				throw new Error('error!!!')  
+			})
+			console.log('promise1', promise1)
+			console.log('promise2', promise2)
+			setTimeout(() => {
+				console.log('promise1', promise1)
+				console.log('promise2', promise2)
+			}, 2000)
+
+        9.题目-状态只能修改一次
+			const promise = new Promise((resolve, reject) => {
+				resolve('success1')
+				reject('error')
+				resolve('success2')
+			})
+			promise.then((res) => {
+				console.log('then: ', res)
+			})
+			.catch((err) => {
+				console.log('catch: ', err)
+			})   
+
+        10.题目- Promise.resolve(2)相当于新的一个promise
+			Promise.resolve(1).then((res) => {
+				console.log(res)
+				return 2;
+			})
+			.catch((err) => {
+				return 3;   
+			})
+			.then((res) => {
+				console.log(res);
+			})
+
+        11.题目-两个都会执行 
+			const promise = new Promise((resolve, reject) => {
+				setTimeout(() => {
+					console.log('once')
+					resolve('success')
+				}, 1000)
+			})
+			const start = Date.now();
+			promise.then((res) => {
+				console.log(res, Date.now() - start)
+			})
+			promise.then((res) => {
+				console.log(res, Date.now() - start)
+			})
+
+        12.题目- return newError()-执行的是then操作，throw执行的是catch
+			Promise.resolve().then(() => {
+				return new Error('error!!!')
+			})
+			.then((res) => {
+				console.log('then: ', res)
+			})
+			.catch((err) => {
+				console.log('catch: ', err)
+			})
+
+        13.题目-then如果不是函数,会发生值穿透
+			Promise.resolve(1)
+			.then(2)
+			.then(Promise.resolve(3)) //如果return的话是返回的值是3
+			.then(console.log) 
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	
+	
+	
